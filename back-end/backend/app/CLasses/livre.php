@@ -1,5 +1,5 @@
 <?php
-class Livre {
+class Livre implements JsonSerializable {
     private $id;
     private $nom;
     private $description;
@@ -39,5 +39,15 @@ class Livre {
 
     public function getPrix() {
         return $this->prix;
+    }
+    public function jsonSerialize(): mixed {
+        return [
+            'id' => $this->id,
+            'nom' => $this->nom,
+            'description' => $this->description,
+            'sourceImg' => $this->sourceImg,
+            'typeLivre' => $this->typeLivre,
+            'prix' => $this->prix,
+        ];
     }
 }

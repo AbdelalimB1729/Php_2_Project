@@ -1,9 +1,10 @@
 <?php
-require_once __DIR__ . '/../config/Headers.php';
-require_once __DIR__ . '/../app/CLasses/Database.php';
+header('Content-Type: application/json');
+require_once __DIR__ . '/app/CLasses/Database.php';
 
-function loadController($controllerName) {
-    $controllerPath = __DIR__ . '/../app/Controllers/' . $controllerName . '.php';
+function loadController($controllerName)
+{
+    $controllerPath = __DIR__ . '/app/Controllers/' . $controllerName . '.php';
     if (file_exists($controllerPath)) {
         require_once $controllerPath;
         return true;
@@ -11,8 +12,9 @@ function loadController($controllerName) {
     return false;
 }
 
-function loadModel($modelName) {
-    $modelPath = __DIR__ . '/../app/Models/' . $modelName . '.php';
+function loadModel($modelName)
+{
+    $modelPath = __DIR__ . '/app/Models/' . $modelName . '.php';
     if (file_exists($modelPath)) {
         require_once $modelPath;
         return true;
@@ -46,3 +48,4 @@ if ($controller && $action) {
 }
 
 ?>
+

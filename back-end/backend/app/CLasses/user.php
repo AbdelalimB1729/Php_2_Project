@@ -1,10 +1,10 @@
 <?php
-class User {
+class User implements JsonSerializable{
     private $id;
     private $nom;
     private $email;
     private $password;
-    private $role; // Nouveau champ
+    private $role;
 
     public function __construct($id, $nom, $email, $password, $role) {
         $this->id = $id;
@@ -33,5 +33,15 @@ class User {
 
     public function getRole() {
         return $this->role;
+    }
+
+    public function jsonSerialize(): mixed {
+        return [
+            'id' => $this->id,
+            'nom' => $this->nom,
+            'email' => $this->email,
+            'password' => $this->password,
+            'role' => $this->role,
+        ];
     }
 }

@@ -1,7 +1,7 @@
 <?php
 require_once  __DIR__ . '/../CLasses/livre.php';
 
-class Livre {
+class LivreModel {
     private $db;
 
     public function __construct(PDO $db){

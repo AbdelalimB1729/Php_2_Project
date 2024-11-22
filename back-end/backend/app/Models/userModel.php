@@ -1,7 +1,7 @@
 <?php
 require_once  __DIR__ . '/../CLasses/user.php'; 
 
-class User {
+class UserModel {
     private $db;
 
     public function __construct(PDO $db){

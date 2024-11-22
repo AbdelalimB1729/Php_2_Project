@@ -1,6 +1,5 @@
 <?php
-require_once  __DIR__ . '/../../config/Headers.php';
-require_once  __DIR__ . '/../Models/modelUser.php';
+require_once  __DIR__ . '/../Models/Usermodel.php';
 
 class UserController {
     private $db;
@@ -10,7 +9,7 @@ class UserController {
     }
 
     public function handleRequest($action) {
-        $userModel = new User($this->db); 
+        $userModel = new UserModel($this->db); 
 
         switch ($action) {
             case 'getAllUsers':

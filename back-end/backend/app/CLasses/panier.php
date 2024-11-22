@@ -1,5 +1,5 @@
 <?php
-class Panier {
+class Panier implements JsonSerializable {
     private $cartId;
     private $userId;
     private $livreId;
@@ -27,5 +27,14 @@ class Panier {
 
     public function getQuantity() {
         return $this->quantity;
+    }
+
+    public function jsonSerialize(): mixed {
+        return [
+            'cartId' => $this->cartId,
+            'userId' => $this->userId,
+            'livreId' => $this->livreId,
+            'quantity' => $this->quantity,
+        ];
     }
 }

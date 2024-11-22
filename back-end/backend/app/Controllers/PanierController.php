@@ -1,5 +1,4 @@
 <?php
-require_once  __DIR__ . '/../../config/Headers.php';
 require_once  __DIR__ . '/../Models/panierModel.php';
 
 class PanierController {
@@ -10,7 +9,7 @@ class PanierController {
     }
 
     public function handleRequest($action) {
-        $panierModel = new Panier($this->db);
+        $panierModel = new PanierModel($this->db);
 
         switch ($action) {
             case 'getAllPaniers':

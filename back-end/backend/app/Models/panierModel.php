@@ -1,7 +1,7 @@
 <?php
 require_once  __DIR__ . '/../CLasses/panier.php';
 
-class Panier {
+class PanierModel {
     private $db;
 
     public function __construct(PDO $db){

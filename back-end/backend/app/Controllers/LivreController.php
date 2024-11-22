@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/../../config/Headers.php';
 require_once __DIR__ . '/../Models/livreModel.php';
 
 class LivreController {
@@ -10,7 +9,7 @@ class LivreController {
     }
 
     public function handleRequest($action) {
-        $livreModel = new Livre($this->db);
+        $livreModel = new livreModel($this->db);
 
         switch ($action) {
             case 'getAllLivres':
