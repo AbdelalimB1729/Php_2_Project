@@ -8,6 +8,8 @@ import Dashboard from './pages_admin/Dashbord';
 import ManageBooks from './pages_admin/Managebooks';
 import ManageUsers from './pages_admin/Manageusers';
 import Settings from './pages_admin/Settings';
+import ShoppingCart from './pages_user/ShppingCard';
+import AuthPage from './AuthPages/Auth';
 const router = createBrowserRouter([
   {
     path: '/',
@@ -24,6 +26,14 @@ const router = createBrowserRouter([
   {
     path: '/shop',
     element: <Shop />,
+  },
+  {
+    path: '/cart',
+    element: <ShoppingCart />,
+  },
+  {
+    path: '/auth', 
+    element: <AuthPage />,
   },
   {
     path: '/admin/dashboard',

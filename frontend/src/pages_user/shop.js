@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Container, Spinner, Alert } from "react-bootstrap";
-import Navbar from '../Components_user/Nav';
-import Footer from '../Components_user/Footer';
-import BookFilter from "../Components_user/BookFilter";
-import BookList from "../Components_user/BookList";
-import { getData } from "../services/api";
+import {
+  Container,
+  Spinner,
+  Alert,
+  Form,
+  Row,
+  Col,
+  Card,
+  Button,
+  Badge,
+} from "react-bootstrap";
+import Navbar from "../Components_user/Nav";
+import Footer from "../Components_user/Footer";
 
 function Shop() {
   const [books, setBooks] = useState([]);
@@ -26,10 +33,16 @@ function Shop() {
     setLoading(true);
     setError(null);
     try {
-      const response = await getData({ controller: "Livre", action: "getAllLivres" });
-      if (Array.isArray(response)) {
-        setBooks(response);
-        setFilteredBooks(response);
+      const response = await fetch(
+        "http://localhost/Test_api/index.php?controller=Livre&action=getAllLivres"
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setBooks(data);
+        setFilteredBooks(data);
       } else {
         throw new Error("Invalid response format");
       }
@@ -42,9 +55,10 @@ function Shop() {
 
   const filterAndSortBooks = () => {
     let updatedBooks = [...books];
-    if (category) updatedBooks = updatedBooks.filter((book) => book.category === category);
-    if (sort === "asc") updatedBooks.sort((a, b) => a.price - b.price);
-    if (sort === "desc") updatedBooks.sort((a, b) => b.price - a.price);
+    if (category)
+      updatedBooks = updatedBooks.filter((book) => book.typeLivre === category);
+    if (sort === "asc") updatedBooks.sort((a, b) => a.prix - b.prix);
+    if (sort === "desc") updatedBooks.sort((a, b) => b.prix - a.prix);
     setFilteredBooks(updatedBooks);
   };
 
@@ -54,20 +68,167 @@ function Shop() {
 
   return (
     <>
-    <Navbar/>
-    <Container style={{ minHeight: "80vh", paddingTop: "20px" }}>
-      <h1 className="text-center mb-4">Welcome to the Book Shop</h1>
-      <BookFilter setCategory={setCategory} setSort={setSort} />
-      {error && <Alert variant="danger" className="text-center">{error}</Alert>}
-      {loading ? (
-        <div className="d-flex justify-content-center my-5">
-          <Spinner animation="border" variant="primary" />
-        </div>
-      ) : (
-        <BookList books={filteredBooks} onAddToCart={handleAddToCart} />
-      )}
-    </Container>
-    <Footer/>
+      <Navbar />
+      <Container
+        style={{ minHeight: "80vh", paddingTop: "20px", marginBottom: "30px" }}
+      >
+        <h1 className="text-center mb-4">Welcome to the Book Shop</h1>
+        <Form className="filter-container p-3 rounded shadow-sm bg-light mb-4">
+          <Row className="gy-3 align-items-center">
+            <Col xs={12} md={6}>
+              <Form.Group controlId="categoryFilter">
+                <Form.Label className="fw-bold text-muted">Category</Form.Label>
+                <Form.Select
+                  onChange={(e) => setCategory(e.target.value)}
+                  aria-label="Filter by category"
+                  className="filter-select"
+                >
+                  <option value="">All Categories</option>
+                  <option value="roman">Roman</option>
+                  <option value="philosophie">Philosophie</option>
+                  <option value="science">Science</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col xs={12} md={6}>
+              <Form.Group controlId="sortFilter">
+                <Form.Label className="fw-bold text-muted">Trier par prix</Form.Label>
+                <Form.Select
+                  onChange={(e) => setSort(e.target.value)}
+                  aria-label="Sort by price"
+                  className="filter-select"
+                >
+                  <option value="">Trier par prix</option>
+                  <option value="asc">Ascendent</option>
+                  <option value="desc">Descendent</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+        </Form>
+
+        {error && (
+          <Alert variant="danger" className="text-center">
+            {error}
+          </Alert>
+        )}
+
+        {loading ? (
+          <div className="d-flex justify-content-center my-5">
+            <Spinner animation="border" variant="primary" />
+          </div>
+        ) : (
+          <Container style={{ minHeight: "80vh", paddingTop: "20px" }}>
+            <h1
+              style={{
+                textAlign: "center",
+                marginBottom: "30px",
+                fontSize: "2.5rem",
+              }}
+            >
+              Our Book Collection
+            </h1>
+            <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+              {filteredBooks.map((book) => (
+                <Col key={book.id}>
+                  <Card
+                    style={{
+                      border: "1px solid rgba(0, 0, 0, 0.1)",
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      backgroundColor: "#f9f9f9",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                      transition: "transform 0.2s",
+                    }}
+                    className="h-100"
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.transform = "scale(1.02)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                  >
+                    <Card.Img
+                      variant="top"
+                      src={book.sourceImg || "../DB/Images_Livres/default.jpg"}
+                      alt={book.nom}
+                      style={{
+                        height: "220px",
+                        objectFit: "cover",
+                        borderBottom: "2px solid #ddd",
+                      }}
+                    />
+                    <Card.Body>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        <div>
+                          <h5
+                            style={{ fontWeight: "bold", marginBottom: "5px" }}
+                          >
+                            {book.nom}
+                          </h5>
+                          <Badge
+                            bg="info"
+                            style={{
+                              fontSize: "0.85rem",
+                              marginBottom: "10px",
+                            }}
+                          >
+                            {book.typeLivre}
+                          </Badge>
+                        </div>
+                        <Card.Text
+                          style={{ fontSize: "0.9rem", color: "#555" }}
+                        >
+                          {book.description}
+                        </Card.Text>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginTop: "10px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "1.2rem",
+                              fontWeight: "bold",
+                              color: "#333",
+                            }}
+                          >
+                            {book.prix} €
+                          </span>
+                          <Button
+                            variant="primary"
+                            onClick={() => handleAddToCart(book)}
+                            style={{
+                              padding: "8px 20px",
+                              borderRadius: "25px",
+                            }}
+                          >
+                            <i
+                              className="bi bi-cart-plus"
+                              style={{ marginRight: "5px" }}
+                            ></i>
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Container>
+        )}
+      </Container>
+      <Footer />
     </>
   );
 }

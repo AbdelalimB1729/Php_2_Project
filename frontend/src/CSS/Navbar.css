@@ -61,24 +61,36 @@
   cursor: pointer;
 }
 .user-icon {
-    font-size: 1.5rem;
-    color: var(--theme-color); 
-    cursor: pointer;
-    margin-left: 10px;
-  }
+  font-size: 1.5rem;
+  color: var(--theme-color);
+  cursor: pointer;
+  margin-left: 10px;
+}
 .logo {
-    display: flex;
-    align-items: center;
-  }
-  
-  .logo-image {
-    width: 40px; 
-    height: auto;
-    margin-right: 10px;
-  }
-  
-  .logo h1 {
-    font-size: 1.5rem;
-    color: var(--theme-color);
-  }
-  
+  display: flex;
+  align-items: center;
+}
+
+.logo-image {
+  width: 40px;
+  height: auto;
+  margin-right: 10px;
+}
+
+.logo h1 {
+  font-size: 1.5rem;
+  color: var(--theme-color);
+}
+
+.user-auth-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+
+.user-auth-link:hover {
+  color: #007bff; 
+}

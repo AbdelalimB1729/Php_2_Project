@@ -30,7 +30,7 @@ function BookList({ books, onAddToCart }) {
             >
               <Card.Img
                 variant="top"
-                src={book.Sourceimg || "../DB/Images_Livres/default.jpg"} // Chemin de secours si l'image manque
+                src={book.Sourceimg || "../DB/Images_Livres/default.jpg"}
                 alt={book.titre}
                 style={{
                   height: "200px",
