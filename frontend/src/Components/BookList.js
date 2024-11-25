@@ -15,7 +15,7 @@ function BookList({ books, onAddToCart }) {
       <h1 style={{ textAlign: "center", marginBottom: "30px", fontSize: "2.5rem" }}>Our Book Collection</h1>
       <Row xs={1} sm={2} md={3} lg={4} className="g-4">
         {books.map((book) => (
-          <Col key={book.id}>
+          <Col key={book.ID_livre}>
             <Card
               style={{
                 border: "none",
@@ -30,8 +30,8 @@ function BookList({ books, onAddToCart }) {
             >
               <Card.Img
                 variant="top"
-                src={book.imageUrl}
-                alt={book.title}
+                src={book.Sourceimg || "../DB/Images_Livres/default.jpg"} // Chemin de secours si l'image manque
+                alt={book.titre}
                 style={{
                   height: "200px",
                   objectFit: "cover",
@@ -39,20 +39,17 @@ function BookList({ books, onAddToCart }) {
                 }}
               />
               <Card.Body>
-                <Card.Title style={{ fontSize: "1.2rem", fontWeight: "bold" }}>{book.title}</Card.Title>
-                <Card.Text style={{ color: "gray", fontSize: "0.9rem" }}>
-                  by {book.author}
-                </Card.Text>
-                <Card.Text style={{ fontSize: "0.95rem" }}>{book.description}</Card.Text>
+                <Card.Title style={{ fontSize: "1.2rem", fontWeight: "bold" }}>{book.titre}</Card.Title>
+                <Card.Text style={{ fontSize: "0.95rem" }}>{book.Description}</Card.Text>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Badge
                     bg="primary"
                     style={{ fontSize: "1rem", padding: "10px", borderRadius: "20px" }}
                   >
-                    {book.price} €
+                    {book.prix} €
                   </Badge>
                   <Button variant="success" onClick={() => onAddToCart(book)} style={{ borderRadius: "20px" }}>
-                    Add to Cart
+                    Add
                   </Button>
                 </div>
               </Card.Body>

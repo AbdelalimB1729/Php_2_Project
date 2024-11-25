@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Spinner, Alert } from "react-bootstrap";
 import BookFilter from "../Components/BookFilter";
 import BookList from "../Components/BookList";
-import { getData } from "../services/api";
+import { getAllLivres } from "../services/api";
 
 function Shop() {
   const [books, setBooks] = useState([]);
@@ -24,9 +24,11 @@ function Shop() {
     setLoading(true);
     setError(null);
     try {
-      const response = await getData({ controller: "Livre", action: "getAllLivres" });
+      const response = await getAllLivres();
       if (Array.isArray(response)) {
         setBooks(response);
+        console.log("Seccuess");
+        console.table(response);
         setFilteredBooks(response);
       } else {
         throw new Error("Invalid response format");
@@ -40,9 +42,10 @@ function Shop() {
 
   const filterAndSortBooks = () => {
     let updatedBooks = [...books];
-    if (category) updatedBooks = updatedBooks.filter((book) => book.category === category);
-    if (sort === "asc") updatedBooks.sort((a, b) => a.price - b.price);
-    if (sort === "desc") updatedBooks.sort((a, b) => b.price - a.price);
+    if (category)
+      updatedBooks = updatedBooks.filter((book) => book.typeLivre === category);
+    if (sort === "asc") updatedBooks.sort((a, b) => a.prix - b.prix);
+    if (sort === "desc") updatedBooks.sort((a, b) => b.prix - a.prix);
     setFilteredBooks(updatedBooks);
   };
 
@@ -51,10 +54,14 @@ function Shop() {
   };
 
   return (
-    <Container style={{ minHeight: "80vh", paddingTop: "20px" }}>
+    <Container style={{ minHeight: "80vh", paddingTop: "20px",marginBottom:"30px" }}>
       <h1 className="text-center mb-4">Welcome to the Book Shop</h1>
       <BookFilter setCategory={setCategory} setSort={setSort} />
-      {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+      {error && (
+        <Alert variant="danger" className="text-center">
+          {error}
+        </Alert>
+      )}
       {loading ? (
         <div className="d-flex justify-content-center my-5">
           <Spinner animation="border" variant="primary" />

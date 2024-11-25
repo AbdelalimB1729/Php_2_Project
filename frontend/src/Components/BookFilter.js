@@ -5,7 +5,6 @@ function BookFilter({ setCategory, setSort }) {
   return (
     <Form className="filter-container p-3 rounded shadow-sm bg-light mb-4">
       <Row className="gy-3 align-items-center">
-        {/* Filter by Category */}
         <Col xs={12} md={6}>
           <Form.Group controlId="categoryFilter">
             <Form.Label className="fw-bold text-muted">Category</Form.Label>
@@ -15,14 +14,13 @@ function BookFilter({ setCategory, setSort }) {
               className="filter-select"
             >
               <option value="">All Categories</option>
-              <option value="Roman">Roman</option>
-              <option value="Philosophie">Philosophie</option>
-              <option value="Science">Science</option>
+              <option value="roman">roman</option>
+              <option value="philosophie">philosophie</option>
+              <option value="science">science</option>
             </Form.Select>
           </Form.Group>
         </Col>
 
-        {/* Sort by Price */}
         <Col xs={12} md={6}>
           <Form.Group controlId="sortFilter">
             <Form.Label className="fw-bold text-muted">Sort by</Form.Label>

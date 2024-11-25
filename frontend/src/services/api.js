@@ -1,11 +1,59 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost/Php_Project_2/back-end/backend/public/index.php',
+    baseURL: 'http://localhost/Test_api/index.php', 
     headers: {
         'Content-Type': 'application/json',
     },
 });
+
+export const getAllUsers = async () => {
+    return await api.get('', { params: { controller: 'User', action: 'getAllUsers' } });
+};
+
+export const getUserById = async (id) => {
+    return await api.get('', { params: { controller: 'User', action: 'getUserById', id } });
+};
+
+export const addUser = async (userData) => {
+    return await api.post('', userData, { params: { controller: 'User', action: 'addUser' } });
+};
+
+export const deleteUser = async (id) => {
+    return await api.delete('', { params: { controller: 'User', action: 'deleteUser', id } });
+};
+
+export const getAllLivres = async () => {
+    return await api.get('', { params: { controller: 'Livre', action: 'getAllLivres' } });
+};
+
+export const getLivreById = async (id) => {
+    return await api.get('', { params: { controller: 'Livre', action: 'getLivreById', id } });
+};
+
+export const addLivre = async (livreData) => {
+    return await api.post('', livreData, { params: { controller: 'Livre', action: 'addLivre' } });
+};
+
+export const deleteLivre = async (id) => {
+    return await api.delete('', { params: { controller: 'Livre', action: 'deleteLivre', id } });
+};
+
+export const getAllPaniers = async () => {
+    return await api.get('', { params: { controller: 'Panier', action: 'getAllPaniers' } });
+};
+
+export const getPanierById = async (id) => {
+    return await api.get('', { params: { controller: 'Panier', action: 'getPanierById', id } });
+};
+
+export const addPanier = async (panierData) => {
+    return await api.post('', panierData, { params: { controller: 'Panier', action: 'addPanier' } });
+};
+
+export const deletePanier = async (id) => {
+    return await api.delete('', { params: { controller: 'Panier', action: 'deletePanier', id } });
+};
 
 export const getData = async (params = {}) => {
     try {
