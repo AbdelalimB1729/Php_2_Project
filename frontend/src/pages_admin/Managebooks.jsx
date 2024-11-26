@@ -1,42 +1,110 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../Components_admin/Sidebar";
 import { Table, Button, Modal, Form, InputGroup, FormControl } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash, faSearch } from "@fortawesome/free-solid-svg-icons";
-import Chart from "chart.js/auto";
 import { Line } from "react-chartjs-2";
-import "../CSS/AdminDashbord.css"
+import "../CSS/AdminDashbord.css";
 
 const ManageBooks = () => {
-  const [books, setBooks] = useState([
-    { id: 1, title: "The Great Gatsby", author: "F. Scott Fitzgerald", category: "Fiction" },
-    { id: 2, title: "1984", author: "George Orwell", category: "Dystopian" },
-    { id: 3, title: "To Kill a Mockingbird", author: "Harper Lee", category: "Classic" },
-  ]);
-
+  const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [formState, setFormState] = useState({ title: "", author: "", category: "" });
+  const [formState, setFormState] = useState({ id: null, nom: "", description: "", typeLivre: "", prix: "", sourceImg: "" });
+  const [editing, setEditing] = useState(false);
 
-  const handleAddBook = () => {
-    setBooks([...books, { id: books.length + 1, ...formState }]);
-    setShowModal(false);
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  // Récupérer tous les livres
+  const fetchBooks = async () => {
+    try {
+      const response = await fetch("http://localhost/Test_api/index.php?controller=Livre&action=getAllLivres");
+      const data = await response.json();
+      setBooks(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des livres :", error);
+    }
   };
 
-  const handleDeleteBook = (id) => {
-    setBooks(books.filter((book) => book.id !== id));
+  // Ajouter ou mettre à jour un livre
+  const handleSaveBook = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("id", formState.id || "");
+      formData.append("nom", formState.nom);
+      formData.append("description", formState.description);
+      formData.append("sourceImg", formState.sourceImg || "default.jpg");
+      formData.append("typeLivre", formState.typeLivre);
+      formData.append("prix", formState.prix);
+
+      const action = editing ? "updateLivre" : "addLivre";
+      const response = await fetch(
+        `http://localhost/Test_api/index.php?controller=Livre&action=${action}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        fetchBooks();
+        setShowModal(false);
+        setEditing(false);
+        setFormState({ id: null, nom: "", description: "", typeLivre: "", prix: "", sourceImg: "" });
+      } else {
+        console.error("Erreur lors de l'enregistrement du livre :", data.error);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du livre :", error);
+    }
+  };
+
+  const handleDeleteBook = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost/Test_api/index.php?controller=Livre&action=deleteLivre&id=${id}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+      } else {
+        console.error("Erreur lors de la suppression du livre :", data.error);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du livre :", error);
+    }
+  };
+
+  const handleEditBook = (book) => {
+    setEditing(true);
+    setFormState({
+      id: book.id,
+      nom: book.nom,
+      description: book.description,
+      typeLivre: book.typeLivre,
+      prix: book.prix,
+      sourceImg: book.sourceImg,
+    });
+    setShowModal(true);
   };
 
   const filteredBooks = books.filter((book) =>
-    `${book.title} ${book.author} ${book.category}`.toLowerCase().includes(searchTerm.toLowerCase())
+    `${book.nom} ${book.description} ${book.typeLivre}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const chartData = {
-    labels: books.map((book) => book.title),
+    labels: books.map((book) => book.nom),
     datasets: [
       {
-        label: "Books by Category",
-        data: books.map((_, index) => index + 1),
+        label: "Books by Price",
+        data: books.map((book) => parseFloat(book.prix)),
         borderColor: "#007bff",
         backgroundColor: "rgba(0, 123, 255, 0.2)",
         tension: 0.4,
@@ -69,8 +137,10 @@ const ManageBooks = () => {
             <tr>
               <th>#</th>
               <th>Title</th>
-              <th>Author</th>
+              <th>Description</th>
               <th>Category</th>
+              <th>Price</th>
+              <th>Image</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -78,11 +148,19 @@ const ManageBooks = () => {
             {filteredBooks.map((book) => (
               <tr key={book.id}>
                 <td>{book.id}</td>
-                <td>{book.title}</td>
-                <td>{book.author}</td>
-                <td>{book.category}</td>
+                <td>{book.nom}</td>
+                <td>{book.description}</td>
+                <td>{book.typeLivre}</td>
+                <td>${parseFloat(book.prix).toFixed(2)}</td>
                 <td>
-                  <Button variant="warning" className="me-2">
+                  <img
+                    src={book.sourceImg} // Affiche l'image directement depuis la source
+                    alt={book.nom}
+                    style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                  />
+                </td>
+                <td>
+                  <Button variant="warning" className="me-2" onClick={() => handleEditBook(book)}>
                     <FontAwesomeIcon icon={faEdit} />
                   </Button>
                   <Button variant="danger" onClick={() => handleDeleteBook(book.id)}>
@@ -100,7 +178,7 @@ const ManageBooks = () => {
         {/* Add/Edit Modal */}
         <Modal show={showModal} onHide={() => setShowModal(false)}>
           <Modal.Header closeButton>
-            <Modal.Title>Add New Book</Modal.Title>
+            <Modal.Title>{editing ? "Edit Book" : "Add New Book"}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form>
@@ -109,17 +187,17 @@ const ManageBooks = () => {
                 <Form.Control
                   type="text"
                   placeholder="Enter book title"
-                  value={formState.title}
-                  onChange={(e) => setFormState({ ...formState, title: e.target.value })}
+                  value={formState.nom}
+                  onChange={(e) => setFormState({ ...formState, nom: e.target.value })}
                 />
               </Form.Group>
               <Form.Group className="mb-3">
-                <Form.Label>Author</Form.Label>
+                <Form.Label>Description</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Enter author name"
-                  value={formState.author}
-                  onChange={(e) => setFormState({ ...formState, author: e.target.value })}
+                  placeholder="Enter book description"
+                  value={formState.description}
+                  onChange={(e) => setFormState({ ...formState, description: e.target.value })}
                 />
               </Form.Group>
               <Form.Group className="mb-3">
@@ -127,11 +205,29 @@ const ManageBooks = () => {
                 <Form.Control
                   type="text"
                   placeholder="Enter book category"
-                  value={formState.category}
-                  onChange={(e) => setFormState({ ...formState, category: e.target.value })}
+                  value={formState.typeLivre}
+                  onChange={(e) => setFormState({ ...formState, typeLivre: e.target.value })}
                 />
               </Form.Group>
-              <Button variant="primary" onClick={handleAddBook}>
+              <Form.Group className="mb-3">
+                <Form.Label>Price</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="Enter book price"
+                  value={formState.prix}
+                  onChange={(e) => setFormState({ ...formState, prix: e.target.value })}
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Image URL</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter image URL"
+                  value={formState.sourceImg}
+                  onChange={(e) => setFormState({ ...formState, sourceImg: e.target.value })}
+                />
+              </Form.Group>
+              <Button variant="primary" onClick={handleSaveBook}>
                 Save
               </Button>
             </Form>

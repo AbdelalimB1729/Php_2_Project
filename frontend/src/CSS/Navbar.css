@@ -82,15 +82,13 @@
   color: var(--theme-color);
 }
 
-.user-auth-link {
-  text-decoration: none;
+.logout-button {
+  background: none;
+  border: none;
   color: inherit;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
 }
 
-.user-auth-link:hover {
-  color: #007bff; 
-}

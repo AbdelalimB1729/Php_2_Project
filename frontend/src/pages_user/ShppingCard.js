@@ -1,94 +1,257 @@
-import React, { useState } from "react";
-import { Button, Container, InputGroup, Form, Card, Row, Col } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Button, Container, Spinner, Alert, Row, Col, Card } from "react-bootstrap";
 import Navbar from "../Components_user/Nav";
 import Footer from "../Components_user/Footer";
+import Cookies from "js-cookie";
 
 const ShoppingCart = () => {
-  const [cart, setCart] = useState([
-    {
-      id: 1,
-      name: "Product 1",
-      price: 20,
-      quantity: 2,
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      id: 2,
-      name: "Product 2",
-      price: 15,
-      quantity: 1,
-      image: "https://via.placeholder.com/100",
-    },
-  ]);
+  const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  const handleQuantityChange = (id, delta) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(item.quantity + delta, 1) }
-          : item
-      )
-    );
+  useEffect(() => {
+    const fetchCart = async () => {
+      setLoading(true);
+      setError("");
+
+      const userCookie = Cookies.get("user");
+      if (!userCookie) {
+        setError("Please log in to view your cart.");
+        setLoading(false);
+        return;
+      }
+
+      const user = JSON.parse(userCookie);
+      const userId = user.id;
+
+      try {
+        const response = await fetch(
+          `http://localhost/Test_api/index.php?controller=Panier&action=getPanierByUserId&userId=${userId}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch cart items.");
+        }
+
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setCart(
+            data.map((item) => ({
+              ...item,
+              book_price: parseFloat(item.book_price) || 0,
+              quantite: parseInt(item.quantite, 10) || 1,
+            }))
+          );
+        } else {
+          throw new Error("Invalid response format.");
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCart();
+  }, []);
+
+  const handleRemoveItem = async (cartId) => {
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        `http://localhost/Test_api/index.php?controller=Panier&action=deleteFromPanier&cartId=${cartId}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setCart((prevCart) => prevCart.filter((item) => item.cart_id !== cartId));
+        setMessage("Item removed from the cart successfully.");
+      } else {
+        setError(data.message || "Failed to remove item from the cart.");
+      }
+    } catch (error) {
+      setError("An error occurred while removing the item from the cart.");
+      console.error(error);
+    }
   };
 
-  const handleRemoveItem = (id) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  const handleIncrementQuantity = async (cartId, livreId) => {
+    setMessage("");
+    const userCookie = Cookies.get("user");
+    if (!userCookie) {
+      setError("Please log in to modify your cart.");
+      return;
+    }
+
+    const user = JSON.parse(userCookie);
+    const userId = user.id;
+
+    try {
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("livreId", livreId);
+
+      const response = await fetch(
+        "http://localhost/Test_api/index.php?controller=Panier&action=incrementQuantity",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setCart((prevCart) =>
+          prevCart.map((item) =>
+            item.cart_id === cartId
+              ? { ...item, quantite: item.quantite + 1 }
+              : item
+          )
+        );
+        setMessage("Quantity incremented successfully.");
+      } else {
+        setError(data.message || "Failed to increment quantity.");
+      }
+    } catch (error) {
+      setError("An error occurred while incrementing the quantity.");
+      console.error(error);
+    }
+  };
+
+  const handleDecrementQuantity = async (cartId, livreId, currentQuantity) => {
+    setMessage("");
+
+    if (!Number.isInteger(currentQuantity) || currentQuantity <= 1) {
+      setMessage("Quantity cannot be less than 1.");
+      return;
+    }
+
+    const userCookie = Cookies.get("user");
+    if (!userCookie) {
+      setError("Please log in to modify your cart.");
+      return;
+    }
+
+    const user = JSON.parse(userCookie);
+    const userId = user.id;
+
+    try {
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("livreId", livreId);
+
+      const response = await fetch(
+        "http://localhost/Test_api/index.php?controller=Panier&action=decrementQuantity",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCart((prevCart) =>
+          prevCart.map((item) =>
+            item.cart_id === cartId
+              ? { ...item, quantite: Math.max(item.quantite - 1, 1) }
+              : item
+          )
+        );
+        setMessage("Quantity decremented successfully.");
+      } else {
+        setError(data.message || "Failed to decrement quantity.");
+      }
+    } catch (error) {
+      setError("An error occurred while decrementing the quantity.");
+      console.error("Decrement Error:", error);
+    }
   };
 
   const calculateTotal = () =>
-    cart.reduce((total, item) => total + item.quantity * item.price, 0);
+    cart.reduce((total, item) => total + item.quantite * item.book_price, 0);
 
   return (
     <>
       <Navbar />
       <Container className="mt-5 mb-5">
         <h2 className="text-center mb-4 fw-bold">Your Shopping Cart</h2>
-        {cart.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-5">
+            <Spinner animation="border" variant="primary" />
+            <p>Loading your cart...</p>
+          </div>
+        ) : error ? (
+          <Alert variant="danger" className="text-center">
+            {error}
+          </Alert>
+        ) : cart.length > 0 ? (
           <>
-            <Row className="g-4">
+            {message && (
+              <Alert
+                variant="success"
+                className="text-center"
+                onClose={() => setMessage("")}
+                dismissible
+              >
+                {message}
+              </Alert>
+            )}
+            <Row xs={1} md={2} lg={3} className="g-4">
               {cart.map((item) => (
-                <Col md={6} lg={4} key={item.id}>
-                  <Card className="shadow-sm h-100">
+                <Col key={item.cart_id}>
+                  <Card className="h-100 shadow-sm">
                     <Card.Img
                       variant="top"
-                      src={item.image}
-                      alt={item.name}
-                      style={{ height: "150px", objectFit: "cover" }}
+                      src={item.book_image}
+                      alt={item.book_name}
+                      style={{ height: "200px", objectFit: "cover" }}
                     />
                     <Card.Body>
-                      <Card.Title>{item.name}</Card.Title>
+                      <Card.Title>{item.book_name}</Card.Title>
+                      <Card.Text>{item.book_description}</Card.Text>
                       <Card.Text>
-                        Price: <strong>${item.price.toFixed(2)}</strong>
+                        <strong>Price:</strong> ${item.book_price.toFixed(2)}
                       </Card.Text>
                       <Card.Text>
-                        Total: <strong>${(item.quantity * item.price).toFixed(2)}</strong>
+                        <strong>Quantity:</strong> {item.quantite}
                       </Card.Text>
-                      <InputGroup className="mb-3">
+                      <Card.Text>
+                        <strong>Total:</strong> $
+                        {(item.quantite * item.book_price).toFixed(2)}
+                      </Card.Text>
+                      <div className="d-flex justify-content-between">
                         <Button
                           variant="outline-secondary"
-                          onClick={() => handleQuantityChange(item.id, -1)}
+                          onClick={() =>
+                            handleDecrementQuantity(
+                              item.cart_id,
+                              item.book_id,
+                              item.quantite
+                            )
+                          }
                         >
                           -
                         </Button>
-                        <Form.Control
-                          value={item.quantity}
-                          readOnly
-                          className="text-center"
-                        />
                         <Button
                           variant="outline-secondary"
-                          onClick={() => handleQuantityChange(item.id, 1)}
+                          onClick={() =>
+                            handleIncrementQuantity(item.cart_id, item.book_id)
+                          }
                         >
                           +
                         </Button>
-                      </InputGroup>
-                      <Button
-                        variant="danger"
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="w-100"
-                      >
-                        Remove
-                      </Button>
+                        <Button
+                          variant="danger"
+                          onClick={() => handleRemoveItem(item.cart_id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </Card.Body>
                   </Card>
                 </Col>

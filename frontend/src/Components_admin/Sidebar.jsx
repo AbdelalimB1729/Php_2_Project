@@ -1,10 +1,17 @@
 import React from "react";
 import { Nav } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChartLine, faBook, faUsers, faCog } from "@fortawesome/free-solid-svg-icons";
+import { faChartLine, faBook, faUsers, faCog, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 import "../CSS/Sidebar.css";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate("/auth");
+  };
+
   return (
     <div className="sidebar bg-dark text-white">
       <Nav className="flex-column">
@@ -19,6 +26,9 @@ const Sidebar = () => {
         </Nav.Link>
         <Nav.Link href="/admin/settings" className="text-white">
           <FontAwesomeIcon icon={faCog} /> Settings
+        </Nav.Link>
+        <Nav.Link onClick={handleLogout} className="text-white">
+          <FontAwesomeIcon icon={faSignOutAlt} /> Logout
         </Nav.Link>
       </Nav>
     </div>

@@ -12,6 +12,7 @@ import {
 } from "react-bootstrap";
 import Navbar from "../Components_user/Nav";
 import Footer from "../Components_user/Footer";
+import Cookies from "js-cookie";
 
 function Shop() {
   const [books, setBooks] = useState([]);
@@ -20,6 +21,7 @@ function Shop() {
   const [sort, setSort] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetchBooks();
@@ -62,10 +64,83 @@ function Shop() {
     setFilteredBooks(updatedBooks);
   };
 
-  const handleAddToCart = (book) => {
-    console.log("Added to cart:", book);
+  const handleAddToCart = async (book) => {
+    const userCookie = Cookies.get("user");
+    if (!userCookie) {
+      setMessage("Please log in to add items to your cart.");
+      return;
+    }
+  
+    const user = JSON.parse(userCookie);
+    const userId = user.id;
+  
+    try {
+      console.log("Checking if product exists...");
+      const checkResponse = await fetch(
+        `http://localhost/Test_api/index.php?controller=Panier&action=checkIfProductExists&userId=${userId}&livreId=${book.id}`
+      );
+  
+      if (!checkResponse.ok) {
+        throw new Error("Failed to check if product exists in cart.");
+      }
+  
+      const checkData = await checkResponse.json();
+      console.log("Check Response:", checkData);
+  
+      if (checkData.exists) {
+        console.log("Product exists, incrementing quantity...");
+  
+        const incrementFormData = new FormData();
+        incrementFormData.append("userId", userId);
+        incrementFormData.append("livreId", book.id);
+  
+        const incrementResponse = await fetch(
+          "http://localhost/Test_api/index.php?controller=Panier&action=incrementQuantity",
+          {
+            method: "POST",
+            body: incrementFormData, 
+          }
+        );
+  
+        const incrementData = await incrementResponse.json();
+        console.log("Increment Response:", incrementData);
+  
+        if (incrementData.success) {
+          setMessage("Book quantity updated successfully in the cart!");
+        } else {
+          setMessage("Failed to update book quantity in the cart.");
+        }
+      } else {
+        console.log("Product does not exist, adding to cart...");
+  
+        const addFormData = new FormData();
+        addFormData.append("userId", userId);
+        addFormData.append("livreId", book.id);
+        addFormData.append("quantity", 1); 
+  
+        const addResponse = await fetch(
+          "http://localhost/Test_api/index.php?controller=Panier&action=addToPanier",
+          {
+            method: "POST",
+            body: addFormData,
+          }
+        );
+  
+        const addData = await addResponse.json();
+        console.log("Add Response:", addData);
+  
+        if (addData.success) {
+          setMessage("Book added to cart successfully!");
+        } else {
+          setMessage(addData.error || "Failed to add book to cart.");
+        }
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessage("An error occurred while adding the book to your cart.");
+    }
   };
-
+  
   return (
     <>
       <Navbar />
@@ -73,6 +148,15 @@ function Shop() {
         style={{ minHeight: "80vh", paddingTop: "20px", marginBottom: "30px" }}
       >
         <h1 className="text-center mb-4">Welcome to the Book Shop</h1>
+        {message && (
+          <Alert
+            variant={message.includes("successfully") ? "success" : "danger"}
+            onClose={() => setMessage("")}
+            dismissible
+          >
+            {message}
+          </Alert>
+        )}
         <Form className="filter-container p-3 rounded shadow-sm bg-light mb-4">
           <Row className="gy-3 align-items-center">
             <Col xs={12} md={6}>
@@ -92,15 +176,17 @@ function Shop() {
             </Col>
             <Col xs={12} md={6}>
               <Form.Group controlId="sortFilter">
-                <Form.Label className="fw-bold text-muted">Trier par prix</Form.Label>
+                <Form.Label className="fw-bold text-muted">
+                  Sort by Price
+                </Form.Label>
                 <Form.Select
                   onChange={(e) => setSort(e.target.value)}
                   aria-label="Sort by price"
                   className="filter-select"
                 >
-                  <option value="">Trier par prix</option>
-                  <option value="asc">Ascendent</option>
-                  <option value="desc">Descendent</option>
+                  <option value="">Sort by Price</option>
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
                 </Form.Select>
               </Form.Group>
             </Col>
